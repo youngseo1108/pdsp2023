@@ -8,6 +8,5 @@ services:
     image: r-frontend
     networks:
       - pdsp-app
-
 networks:
   pdsp-app:

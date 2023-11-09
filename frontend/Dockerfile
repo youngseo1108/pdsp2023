@@ -11,5 +11,7 @@ COPY ./src /code/src
 RUN apt update && apt install -y libcurl4-openssl-dev libssl-dev
 RUN R -e "install.packages(c('shiny', 'httr', 'dpylr', 'jsonlite', 'leaflet', 'ggmap'), repos='https://cran.rstudio.com/')"
 
-EXPOSE 8080
-CMD ["R", "-e", "shiny::runApp('/code/init__.R', host='0.0.0.0', port=8080)"]
+EXPOSE 3838
+# specify 
+# CMD ["R", "-e", "shiny::runApp('/code/init__.R', host='35.240.13.23', port=8080)"]
+# CMD ["R", "-e", "shiny::runApp('/code/init__.R', host='127.0.0.1', port=3838)"]

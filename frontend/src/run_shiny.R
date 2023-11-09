@@ -17,6 +17,7 @@ ui <- fluidPage(
   )
 )
 
+## try it wihtout components inside of the function
 server <- function(input, output, session, e = external_ip, p =  port) {
   output$sum <- renderText({
     # GET request from an API
