@@ -13,4 +13,4 @@
 # port = "8080" --> port should be different for the back/frontend
 # TRY WITHOUT CALLING THE BACKEND! -> deploy the backend spcify the correct ip & port later...
 external_ip = "127.0.0.1"
-port = "3838"
+port = "5000"
