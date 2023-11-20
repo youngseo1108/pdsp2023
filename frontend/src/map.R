@@ -14,40 +14,20 @@ library(shinydashboard)
 library(leaflet)
 library(plotly)
 
-# Custom icon function
+# Define customIcon function
 customIcon <- function(iconUrl, iconSize) {
   makeIcon(
     iconUrl = iconUrl,
-    iconWidth = iconSize[1],
-    iconHeight = iconSize[2]
+    iconWidth = iconSize[1], iconHeight = iconSize[2],
+    iconAnchorX = iconSize[1]/2, iconAnchorY = iconSize[2]/2
   )
 }
 
-# Calculate haversine distance between two coordinates
-haversine <- function(coord1, coord2) {
-  # Assuming coord1 and coord2 are vectors in the form c(longitude, latitude)
-  # Convert latitude and longitude from degrees to radians
-  lat1 <- coord1[2] * pi / 180
-  lon1 <- coord1[1] * pi / 180
-  lat2 <- coord2[2] * pi / 180
-  lon2 <- coord2[1] * pi / 180
-  
-  # Compute differences
-  dlat <- lat2 - lat1
-  dlon <- lon2 - lon1
-  
-  # Haversine formula
-  a <- sin(dlat/2)^2 + cos(lat1) * cos(lat2) * sin(dlon/2)^2
-  c <- 2 * atan2(sqrt(a), sqrt(1 - a))
-  
-  # Radius of the Earth in kilometers (change it to miles if needed)
-  r <- 6371
-  
-  # Calculate the distance
-  distance <- r * c
-  
-  return(distance)
-}
+# Read the airport-codes.csv file
+airport_data <- read.csv("airport-codes.csv")
+
+# Extract unique country codes from the data
+iso_countries <- sort(unique(airport_data$iso_country))
 
 # Create a Shiny app
 ui <- dashboardPage(
@@ -76,11 +56,12 @@ ui <- dashboardPage(
                   title = "Itinerary Overview",
                   status = "primary",
                   solidHeader = TRUE,
-                  width = 7,
-                  textInput("origin_airport", "From"),
-                  textInput("dest_airport", "To"),
-                  dateInput("date", "Date"),
-                  actionButton("plot_route", "Search", style = "background-color: #be0000; color: white; border: none;")
+                  width = 8,  # Adjusted width from 7 to 8
+                  selectInput("origin_country", "Select Origin Country", choices = iso_countries),
+                  selectInput("origin_airport", "Select Origin Airport", choices = NULL),
+                  selectInput("dest_country", "Select Destination Country", choices = iso_countries),
+                  selectInput("dest_airport", "Select Destination Airport", choices = NULL),
+                  actionButton("plot_route", "Search"),
                 ),
                 column(6, align = "center",  # Increase column width for the map
                        style = "padding: 15px; border-rounded bg-lightgray map-container",
@@ -92,6 +73,7 @@ ui <- dashboardPage(
                 )
               )
       ),
+      
       
       # Part 2: Result Output
       tabItem(tabName = "result",
@@ -159,6 +141,25 @@ ui <- dashboardPage(
 server <- function(input, output, session) {
   map_data <- reactiveValues(map = NULL)  # Initialize map_data outside of observe
   
+  # Update airport choices based on the selected country
+  observeEvent(input$origin_country, {
+    # Filter airport data based on the selected origin country
+    airports_for_origin <- airport_data %>%
+      filter(iso_country == input$origin_country)
+    
+    # Update choices for origin airport dropdown
+    updateSelectInput(session, "origin_airport", choices = airports_for_origin$iata_code)
+  })
+  
+  observeEvent(input$dest_country, {
+    # Filter airport data based on the selected destination country
+    airports_for_dest <- airport_data %>%
+      filter(iso_country == input$dest_country)
+    
+    # Update choices for destination airport dropdown
+    updateSelectInput(session, "dest_airport", choices = airports_for_dest$iata_code)
+  })
+  
   observeEvent(input$plot_route, {
     # Filter origin airport names based on user input
     filtered_origin_airports <- airport_data %>%
@@ -173,50 +174,63 @@ server <- function(input, output, session) {
       print(paste("Origin Airport Coordinates:", paste(origin_coords, collapse = ", ")))
       
       if (!any(is.na(origin_coords))) {
-        # Filter destination airport names based on user input
-        filtered_dest_airports <- airport_data %>%
-          filter(grepl(tolower(input$dest_airport), tolower(iata_code)))
+        # Create a map centered at the selected airport
+        map <- leaflet() %>%
+          addTiles() %>%
+          setView(lng = origin_coords[1], lat = origin_coords[2], zoom = 10)
         
-        # Check if there are any matching airports
-        if (nrow(filtered_dest_airports) > 0) {
-          # Access the iata_code and coordinates of the first row
-          dest_iata_code <- filtered_dest_airports[1, "iata_code"]
-          dest_coords <- as.numeric(strsplit(filtered_dest_airports[1, "coordinates"], ", ")[[1]])
-          print(paste("Destination Airport IATA Code:", dest_iata_code))
-          print(paste("Destination Airport Coordinates:", paste(dest_coords, collapse = ", ")))
-          
-          if (!any(is.na(dest_coords))) {
-            # Calculate the midpoint between origin and destination
-            midpoint <- c(mean(c(origin_coords[1], dest_coords[1])), mean(c(origin_coords[2], dest_coords[2])))
-            
-            # Calculate the haversine distance between origin and destination
-            distance <- haversine(origin_coords, dest_coords)
-            
-            # Calculate the zoom level based on the distance
-            zoom_level <- 6 - log10(distance)  # Adjust this formula based on your preference
-            
-            # Create a map centered at the midpoint
-            map <- leaflet() %>%
-              addTiles() %>%
-              setView(lng = midpoint[1], lat = midpoint[2], zoom = zoom_level)
-            
-            # Add markers for origin and destination with custom icons
-            map <- map %>%
-              addMarkers(lng = origin_coords[1], lat = origin_coords[2], popup = origin_iata_code) %>%
-              addMarkers(lng = dest_coords[1], lat = dest_coords[2], popup = dest_iata_code, icon = customIcon(iconUrl = "~/Desktop/Study/PDSP/maps-test/airplane.png", iconSize = c(32, 32)))
-            
-            # Add a polyline to connect origin and destination
-            map <- addPolylines(map, lng = c(origin_coords[1], dest_coords[1]), lat = c(origin_coords[2], dest_coords[2]), color = "blue", weight = 2)
-            
-            # Store the map data in the reactiveValues object
-            map_data$map <- map
-          }
-        } else {
-          print("No matching destination airport.")
-        }
+        # Add a marker for the selected airport with a custom icon
+        map <- map %>%
+          addMarkers(lng = origin_coords[1], lat = origin_coords[2], popup = origin_iata_code)
+        
+        # Store the map data in the reactiveValues object
+        map_data$map <- map
       }
     } else {
       print("No matching origin airport.")
+    }
+    
+    # Filter destination airport names based on user input
+    filtered_dest_airports <- airport_data %>%
+      filter(grepl(tolower(input$dest_airport), tolower(iata_code)))
+    
+    # Check if there are any matching airports
+    if (nrow(filtered_dest_airports) > 0) {
+      # Access the iata_code and coordinates of the first row
+      dest_iata_code <- filtered_dest_airports[1, "iata_code"]
+      dest_coords <- as.numeric(strsplit(filtered_dest_airports[1, "coordinates"], ", ")[[1]])
+      print(paste("Destination Airport IATA Code:", dest_iata_code))
+      print(paste("Destination Airport Coordinates:", paste(dest_coords, collapse = ", ")))
+      
+      if (!any(is.na(dest_coords))) {
+        # If map is already initialized, update the view
+        if (!is.null(map_data$map)) {
+          map_data$map <- setView(map_data$map, lng = dest_coords[1], lat = dest_coords[2], zoom = 10)
+          
+          # Add a polyline to connect origin and destination
+          map_data$map <- addPolylines(map_data$map, lng = c(origin_coords[1], dest_coords[1]), lat = c(origin_coords[2], dest_coords[2]), color = "blue", weight = 2)
+          
+          # Add a marker for the destination airport with a custom icon
+          map_data$map <- addMarkers(map_data$map, lng = dest_coords[1], lat = dest_coords[2], popup = dest_iata_code, icon = customIcon(iconUrl = "airplane.png", iconSize = c(32, 32)))
+        } else {
+          # If map is not initialized, create a new map centered at the selected airport
+          map <- leaflet() %>%
+            addTiles() %>%
+            setView(lng = dest_coords[1], lat = dest_coords[2], zoom = 10)
+          
+          # Add a marker for the selected airport with a custom icon
+          map <- map %>%
+            addMarkers(lng = dest_coords[1], lat = dest_coords[2], popup = dest_iata_code, icon = customIcon(iconUrl = "airplane.png", iconSize = c(32, 32)))
+          
+          # Add a polyline to connect origin and destination
+          map <- addPolylines(map, lng = c(origin_coords[1], dest_coords[1]), lat = c(origin_coords[2], dest_coords[2]), color = "blue", weight = 2)
+          
+          # Store the map data in the reactiveValues object
+          map_data$map <- map
+        }
+      }
+    } else {
+      print("No matching destination airport.")
     }
   })
   
