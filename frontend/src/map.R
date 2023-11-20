@@ -36,18 +36,22 @@ ui <- dashboardPage(
     titleWidth = 200,
     # Apply theme color to the header
     tags$li(class = "dropdown",
-            tags$style(HTML(".main-header { background-color: rgba(204,0,0,1); }"))
+            tags$style(HTML(".main-header { background-color: #8B0000; }"))
     )
   ),
   dashboardSidebar(
     sidebarMenu(
       menuItem("Itinerary Overview", tabName = "overview"),
       menuItem("Result Output", tabName = "result")
+    ),
+    # Change sidebar color here
+    tags$style(
+      HTML(".main-sidebar { background-color: #8B0000; }")
     )
   ),
   dashboardBody(
     # Apply theme color to the body
-    tags$style(HTML("body, .main-sidebar, .right-side, .wrapper { background-color: rgba(204,0,0,1); }")),
+    tags$style(HTML("body, .main-sidebar, .right-side, .wrapper { background-color: #8B0000; }")),
     tabItems(
       # Part 1: Itinerary Overview
       tabItem(tabName = "overview",
@@ -56,7 +60,7 @@ ui <- dashboardPage(
                   title = "Itinerary Overview",
                   status = "primary",
                   solidHeader = TRUE,
-                  width = 8,  # Adjusted width from 7 to 8
+                  width = 4,
                   selectInput("origin_country", "Select Origin Country", choices = iso_countries),
                   selectInput("origin_airport", "Select Origin Airport", choices = NULL),
                   selectInput("dest_country", "Select Destination Country", choices = iso_countries),
@@ -67,7 +71,7 @@ ui <- dashboardPage(
                        style = "padding: 15px; border-rounded bg-lightgray map-container",
                        leafletOutput("flight_map")
                 ),
-                column(5, align = "center",  # Increase column width for the pie chart
+                column(6, align = "center",  # Increase column width for the pie chart
                        style = "padding: 15px; border-rounded bg-lightgray chart-container",
                        plotlyOutput("market_share_pie")
                 )
@@ -104,7 +108,7 @@ ui <- dashboardPage(
               ),
               fluidRow(
                 box(
-                  title = "Other Information", # Move "Other Information" here
+                  title = "Other Information",
                   status = "primary",
                   solidHeader = TRUE,
                   width = 3
@@ -177,7 +181,7 @@ server <- function(input, output, session) {
         # Create a map centered at the selected airport
         map <- leaflet() %>%
           addTiles() %>%
-          setView(lng = origin_coords[1], lat = origin_coords[2], zoom = 10)
+          setView(lng = origin_coords[1], lat = origin_coords[2], zoom = 4)
         
         # Add a marker for the selected airport with a custom icon
         map <- map %>%
@@ -205,7 +209,7 @@ server <- function(input, output, session) {
       if (!any(is.na(dest_coords))) {
         # If map is already initialized, update the view
         if (!is.null(map_data$map)) {
-          map_data$map <- setView(map_data$map, lng = dest_coords[1], lat = dest_coords[2], zoom = 10)
+          map_data$map <- setView(map_data$map, lng = dest_coords[1], lat = dest_coords[2], zoom = 4)
           
           # Add a polyline to connect origin and destination
           map_data$map <- addPolylines(map_data$map, lng = c(origin_coords[1], dest_coords[1]), lat = c(origin_coords[2], dest_coords[2]), color = "blue", weight = 2)
@@ -216,7 +220,7 @@ server <- function(input, output, session) {
           # If map is not initialized, create a new map centered at the selected airport
           map <- leaflet() %>%
             addTiles() %>%
-            setView(lng = dest_coords[1], lat = dest_coords[2], zoom = 10)
+            setView(lng = dest_coords[1], lat = dest_coords[2], zoom = 4)
           
           # Add a marker for the selected airport with a custom icon
           map <- map %>%
