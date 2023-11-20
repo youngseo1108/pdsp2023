@@ -61,6 +61,7 @@ ui <- dashboardPage(
                   status = "primary",
                   solidHeader = TRUE,
                   width = 4,
+                  dateInput("departure_date", "Select Departure Date:", value = Sys.Date()),
                   selectInput("origin_country", "Select Origin Country", choices = iso_countries),
                   selectInput("origin_airport", "Select Origin Airport", choices = NULL),
                   selectInput("dest_country", "Select Destination Country", choices = iso_countries),
