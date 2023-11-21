@@ -23,11 +23,11 @@ customIcon <- function(iconUrl, iconSize) {
   )
 }
 
-# Read the airport-codes.csv file
-airport_data <- read.csv("airport-codes.csv")
+# Read the world_country.csv file
+world_data <- read.csv("world_country.csv")
 
 # Extract unique country codes from the data
-iso_countries <- sort(unique(airport_data$iso_country))
+country_codes <- sort(unique(world_data$country_code))
 
 # Create a Shiny app
 ui <- dashboardPage(
@@ -62,10 +62,8 @@ ui <- dashboardPage(
                   solidHeader = TRUE,
                   width = 4,
                   dateInput("departure_date", "Select Departure Date:", value = Sys.Date()),
-                  selectInput("origin_country", "Select Origin Country", choices = iso_countries),
-                  selectInput("origin_airport", "Select Origin Airport", choices = NULL),
-                  selectInput("dest_country", "Select Destination Country", choices = iso_countries),
-                  selectInput("dest_airport", "Select Destination Airport", choices = NULL),
+                  selectInput("origin_country", "Select Origin Country", choices = country_codes),
+                  selectInput("dest_country", "Select Destination Country", choices = country_codes),
                   actionButton("plot_route", "Search"),
                 ),
                 column(6, align = "center",  # Increase column width for the map
@@ -146,96 +144,91 @@ ui <- dashboardPage(
 server <- function(input, output, session) {
   map_data <- reactiveValues(map = NULL)  # Initialize map_data outside of observe
   
-  # Update airport choices based on the selected country
-  observeEvent(input$origin_country, {
-    # Filter airport data based on the selected origin country
-    airports_for_origin <- airport_data %>%
-      filter(iso_country == input$origin_country)
-    
-    # Update choices for origin airport dropdown
-    updateSelectInput(session, "origin_airport", choices = airports_for_origin$iata_code)
-  })
-  
-  observeEvent(input$dest_country, {
-    # Filter airport data based on the selected destination country
-    airports_for_dest <- airport_data %>%
-      filter(iso_country == input$dest_country)
-    
-    # Update choices for destination airport dropdown
-    updateSelectInput(session, "dest_airport", choices = airports_for_dest$iata_code)
-  })
-  
   observeEvent(input$plot_route, {
     # Filter origin airport names based on user input
-    filtered_origin_airports <- airport_data %>%
-      filter(grepl(tolower(input$origin_airport), tolower(iata_code)))
+    filtered_origin_entries <- world_data %>%
+      filter(grepl(tolower(input$origin_country), tolower(country_code)))
     
-    # Check if there are any matching airports
-    if (nrow(filtered_origin_airports) > 0) {
-      # Access the iata_code and coordinates of the first row
-      origin_iata_code <- filtered_origin_airports[1, "iata_code"]
-      origin_coords <- as.numeric(strsplit(filtered_origin_airports[1, "coordinates"], ", ")[[1]])
-      print(paste("Origin Airport IATA Code:", origin_iata_code))
-      print(paste("Origin Airport Coordinates:", paste(origin_coords, collapse = ", ")))
+    # Check if there are any matching entries
+    if (nrow(filtered_origin_entries) > 0) {
+      # Access the country_code, latitude, and longitude of the first row
+      origin_country_code <- filtered_origin_entries[1, "country_code"]
+      origin_latitude <- filtered_origin_entries[1, "latitude"]
+      origin_longitude <- filtered_origin_entries[1, "longitude"]
+      print(paste("Origin Country Code:", origin_country_code))
+      print(paste("Origin Coordinates:", paste(origin_latitude, origin_longitude, collapse = ", ")))
       
-      if (!any(is.na(origin_coords))) {
-        # Create a map centered at the selected airport
+      if (!any(is.na(origin_latitude), is.na(origin_longitude))) {
+        # Create a map centered at the selected country
         map <- leaflet() %>%
           addTiles() %>%
-          setView(lng = origin_coords[1], lat = origin_coords[2], zoom = 4)
+          setView(lng = origin_longitude, lat = origin_latitude, zoom = 5)
         
-        # Add a marker for the selected airport with a custom icon
+        # Add a marker for the selected country with a custom icon
         map <- map %>%
-          addMarkers(lng = origin_coords[1], lat = origin_coords[2], popup = origin_iata_code)
+          addMarkers(lng = origin_longitude, lat = origin_latitude, popup = origin_country_code)
         
         # Store the map data in the reactiveValues object
         map_data$map <- map
       }
     } else {
-      print("No matching origin airport.")
+      print("No matching origin country.")
     }
     
-    # Filter destination airport names based on user input
-    filtered_dest_airports <- airport_data %>%
-      filter(grepl(tolower(input$dest_airport), tolower(iata_code)))
+    # Filter destination entries based on user input
+    filtered_dest_entries <- world_data %>%
+      filter(grepl(tolower(input$dest_country), tolower(country_code)))
     
-    # Check if there are any matching airports
-    if (nrow(filtered_dest_airports) > 0) {
-      # Access the iata_code and coordinates of the first row
-      dest_iata_code <- filtered_dest_airports[1, "iata_code"]
-      dest_coords <- as.numeric(strsplit(filtered_dest_airports[1, "coordinates"], ", ")[[1]])
-      print(paste("Destination Airport IATA Code:", dest_iata_code))
-      print(paste("Destination Airport Coordinates:", paste(dest_coords, collapse = ", ")))
+    # Check if there are any matching entries
+    if (nrow(filtered_dest_entries) > 0) {
+      # Access the country_code, latitude, and longitude of the first row
+      dest_country_code <- filtered_dest_entries[1, "country_code"]
+      dest_latitude <- filtered_dest_entries[1, "latitude"]
+      dest_longitude <- filtered_dest_entries[1, "longitude"]
+      print(paste("Destination Country Code:", dest_country_code))
+      print(paste("Destination Coordinates:", paste(dest_latitude, dest_longitude, collapse = ", ")))
       
-      if (!any(is.na(dest_coords))) {
+      if (!any(is.na(dest_latitude), is.na(dest_longitude))) {
         # If map is already initialized, update the view
         if (!is.null(map_data$map)) {
-          map_data$map <- setView(map_data$map, lng = dest_coords[1], lat = dest_coords[2], zoom = 4)
+          map_data$map <- setView(map_data$map, lng = dest_longitude, lat = dest_latitude, zoom = 5)
           
           # Add a polyline to connect origin and destination
-          map_data$map <- addPolylines(map_data$map, lng = c(origin_coords[1], dest_coords[1]), lat = c(origin_coords[2], dest_coords[2]), color = "blue", weight = 2)
+          map_data$map <- addPolylines(map_data$map, lng = c(origin_longitude, dest_longitude), lat = c(origin_latitude, dest_latitude), color = "blue", weight = 2)
           
-          # Add a marker for the destination airport with a custom icon
-          map_data$map <- addMarkers(map_data$map, lng = dest_coords[1], lat = dest_coords[2], popup = dest_iata_code, icon = customIcon(iconUrl = "airplane.png", iconSize = c(32, 32)))
+          # Add a marker for the destination country with a custom icon
+          map_data$map <- addMarkers(map_data$map, lng = dest_longitude, lat = dest_latitude, popup = dest_country_code, icon = customIcon(iconUrl = "airplane.png", iconSize = c(32, 32)))
         } else {
-          # If map is not initialized, create a new map centered at the selected airport
+          # If map is not initialized, create a new map centered at the selected country
           map <- leaflet() %>%
             addTiles() %>%
-            setView(lng = dest_coords[1], lat = dest_coords[2], zoom = 4)
+            setView(lng = dest_longitude, lat = dest_latitude, zoom = 5)
           
-          # Add a marker for the selected airport with a custom icon
+          # Add a marker for the selected country with a custom icon
           map <- map %>%
-            addMarkers(lng = dest_coords[1], lat = dest_coords[2], popup = dest_iata_code, icon = customIcon(iconUrl = "airplane.png", iconSize = c(32, 32)))
+            addMarkers(lng = dest_longitude, lat = dest_latitude, popup = dest_country_code, icon = customIcon(iconUrl = "airplane.png", iconSize = c(32, 32)))
           
           # Add a polyline to connect origin and destination
-          map <- addPolylines(map, lng = c(origin_coords[1], dest_coords[1]), lat = c(origin_coords[2], dest_coords[2]), color = "blue", weight = 2)
+          map <- addPolylines(map, lng = c(origin_longitude, dest_longitude), lat = c(origin_latitude, dest_latitude), color = "blue", weight = 2)
           
           # Store the map data in the reactiveValues object
           map_data$map <- map
         }
       }
     } else {
-      print("No matching destination airport.")
+      print("No matching destination country.")
+    }
+  })
+  
+  # Render the map
+  output$flight_map <- renderLeaflet({
+    if (is.null(map_data$map)) {
+      # Set the initial view to the center of the world
+      leaflet() %>%
+        addTiles() %>%
+        setView(lng = 0, lat = 30, zoom = 2)
+    } else {
+      map_data$map
     }
   })
   
