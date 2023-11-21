@@ -29,6 +29,9 @@ world_data <- read.csv("world_country.csv")
 # Extract unique country codes from the data
 country_codes <- sort(unique(world_data$country_code))
 
+# Define a vector of weekdays
+weekdays_vector <- c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+
 # Create a Shiny app
 ui <- dashboardPage(
   dashboardHeader(
@@ -61,9 +64,9 @@ ui <- dashboardPage(
                   status = "primary",
                   solidHeader = TRUE,
                   width = 4,
-                  dateInput("departure_date", "Select Departure Date:", value = Sys.Date()),
-                  selectInput("origin_country", "Select Origin Country", choices = country_codes),
-                  selectInput("dest_country", "Select Destination Country", choices = country_codes),
+                  selectInput("departure_day", "Departure Day:", choices = weekdays_vector),
+                  selectInput("origin_country", "Origin Country", choices = country_codes),
+                  selectInput("dest_country", "Destination Country", choices = country_codes),
                   actionButton("plot_route", "Search"),
                 ),
                 column(6, align = "center",  # Increase column width for the map
@@ -246,8 +249,8 @@ server <- function(input, output, session) {
   
   # Placeholder data (replace with actual data)
   dummy_data <- data.frame(
-    Deptime = c("08:00", "09:00", "10:00"),
-    Arrtime = c("10:00", "11:30", "12:30"),
+    Depthours = c("08:00", "09:00", "10:00"),
+    Arrhours = c("10:00", "11:30", "12:30"),
     Elptime = c(120, 90, 60),
     Option = c("Option 1", "Option 2", "Option 3")
   )
