@@ -67,8 +67,7 @@ ui <- dashboardPage(
                   selectInput("departure_day", "Departure Day:", choices = weekdays_vector),
                   selectInput("origin_country", "Origin Country", choices = country_codes),
                   selectInput("dest_country", "Destination Country", choices = country_codes),
-                  actionButton("get_data_button", "Get Itinerary Input Data"),
-                  actionButton("plot_route", "Search"),
+                  actionButton("get_data_button", "Search"),  # Changed to get_data_button
                 ),
                 column(6, align = "center",  # Increase column width for the map
                        style = "padding: 15px; border-rounded bg-lightgray map-container",
@@ -149,33 +148,45 @@ server <- function(input, output, session) {
   
   # Initialize shinyjs
   shinyjs::useShinyjs()
-
+  
   # Define an observer for the button click
   observeEvent(input$get_data_button, {
+    # Connect user input with world_data
+    filtered_world_data <- world_data %>%
+      filter(grepl(tolower(input$departure_day), tolower(depDay)) &
+               grepl(tolower(input$origin_country), tolower(Orig_s)) &
+               grepl(tolower(input$dest_country), tolower(Dest_s)))
+    
     # Execute JavaScript to make an HTTP request to the Flask server
-    shinyjs::runjs(paste("
-      $.ajax({
-        type: 'GET',
-        url: 'http://89.206.82.230:5000/get_itinerary_input',
-        data: {
-          depDay: '", input$departure_day, "',
-          Orig_s: '", input$origin_country, "',
-          Dest_s: '", input$dest_country, "'
-        },
-        success: function(data) {
-          Shiny.setInputValue('itinerary_input', data);
-        }
-      });
-    "))
+    if (!is.null(filtered_world_data)) {
+      # Assuming you have a function in your backend to handle this specific request
+      # Adjust the URL and parameters based on your backend implementation
+      shinyjs::runjs(paste("
+        $.ajax({
+          type: 'GET',
+          url: 'http://0.0.0.0:5000/get_itinerary_input', # Change IP to backend server
+          data: {
+            depDay: '", input$departure_day, "',
+            Orig_s: '", input$origin_country, "',
+            Dest_s: '", input$dest_country, "'
+          },
+          success: function(data) {
+            Shiny.setInputValue('itinerary_input', data);
+          }
+        });
+      "))
+    } else {
+      print("No matching data in world_data.")
+    }
   })
-
+  
   # Define an observer to handle the received data
   observe({
     itinerary_data <- input$itinerary_input
     # Process and use the received data in your Shiny app
-    # ...
+    #####################################################
   })
-
+  
   observeEvent(input$plot_route, {
     # Filter origin airport names based on user input
     filtered_origin_entries <- world_data %>%
@@ -263,7 +274,7 @@ server <- function(input, output, session) {
       map_data$map
     }
   })
-
+  
   # Placeholder data (replace with actual data)
   dummy_data <- data.frame(
     Depthours = c("08:00", "09:00", "10:00"),
@@ -271,7 +282,7 @@ server <- function(input, output, session) {
     Elptime = c(120, 90, 60),
     Option = c("Option 1", "Option 2", "Option 3")
   )
-
+  
   # Render the market share pie chart with improved style
   output$market_share_pie <- renderPlotly({
     data <- data.frame(
@@ -283,12 +294,12 @@ server <- function(input, output, session) {
       layout(title = "Market Share", titlefont = list(size = 18, color = "#be0000"), showlegend = TRUE) %>%
       config(displayModeBar = FALSE)  # Hide the chart toolbar
   })
-
+  
   # Render recommendations table (using dummy data)
   output$recommendations <- renderDataTable({
     dummy_data
   })
-
+  
   # Render other information (replace with actual data)
   output$detour <- renderText("Detour information")
   output$stops <- renderText("Stops information")
