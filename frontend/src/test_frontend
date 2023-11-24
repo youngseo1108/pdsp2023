@@ -67,7 +67,7 @@ ui <- dashboardPage(
                   selectInput("departure_day", "Departure Day:", choices = weekdays_vector),
                   selectInput("origin_country", "Origin Country", choices = country_codes),
                   selectInput("dest_country", "Destination Country", choices = country_codes),
-                  actionButton("plot_route", "Search"),
+                  actionButton("get_data_button", "Search"),  # Changed to get_data_button
                 ),
                 column(6, align = "center",  # Increase column width for the map
                        style = "padding: 15px; border-rounded bg-lightgray map-container",
@@ -79,7 +79,6 @@ ui <- dashboardPage(
                 )
               )
       ),
-      
       
       # Part 2: Result Output
       tabItem(tabName = "result",
@@ -147,10 +146,51 @@ ui <- dashboardPage(
 server <- function(input, output, session) {
   map_data <- reactiveValues(map = NULL)  # Initialize map_data outside of observe
   
+  # Initialize shinyjs
+  shinyjs::useShinyjs()
+  
+  # Define an observer for the button click
+  observeEvent(input$get_data_button, {
+    # Connect user input with world_data
+    filtered_world_data <- world_data %>%
+      filter(grepl(tolower(input$departure_day), tolower(depDay)) &
+               grepl(tolower(input$origin_country), tolower(Orig_s)) &
+               grepl(tolower(input$dest_country), tolower(Dest_s)))
+    
+    # Execute JavaScript to make an HTTP request to the Flask server
+    if (!is.null(filtered_world_data)) {
+      # Assuming you have a function in your backend to handle this specific request
+      # Adjust the URL and parameters based on your backend implementation
+      shinyjs::runjs(paste("
+        $.ajax({
+          type: 'GET',
+          url: 'http://0.0.0.0:5000/get_itinerary_input', # Change IP to backend server
+          data: {
+            depDay: '", input$departure_day, "',
+            Orig_s: '", input$origin_country, "',
+            Dest_s: '", input$dest_country, "'
+          },
+          success: function(data) {
+            Shiny.setInputValue('itinerary_input', data);
+          }
+        });
+      "))
+    } else {
+      print("No matching data in world_data.")
+    }
+  })
+  
+  # Define an observer to handle the received data
+  observe({
+    itinerary_data <- input$itinerary_input
+    # Process and use the received data in your Shiny app
+    #####################################################
+  })
+  
   observeEvent(input$plot_route, {
     # Filter origin airport names based on user input
     filtered_origin_entries <- world_data %>%
-      filter(grepl(tolower(input$origin_country), tolower(country_code)))
+      filter(grepl(tolower(input$origin_country), tolower(country_codes)))
     
     # Check if there are any matching entries
     if (nrow(filtered_origin_entries) > 0) {
@@ -180,7 +220,7 @@ server <- function(input, output, session) {
     
     # Filter destination entries based on user input
     filtered_dest_entries <- world_data %>%
-      filter(grepl(tolower(input$dest_country), tolower(country_code)))
+      filter(grepl(tolower(input$dest_country), tolower(country_codes)))
     
     # Check if there are any matching entries
     if (nrow(filtered_dest_entries) > 0) {
@@ -220,18 +260,6 @@ server <- function(input, output, session) {
       }
     } else {
       print("No matching destination country.")
-    }
-  })
-  
-  # Render the map
-  output$flight_map <- renderLeaflet({
-    if (is.null(map_data$map)) {
-      # Set the initial view to the center of the world
-      leaflet() %>%
-        addTiles() %>%
-        setView(lng = 0, lat = 30, zoom = 2)
-    } else {
-      map_data$map
     }
   })
   
