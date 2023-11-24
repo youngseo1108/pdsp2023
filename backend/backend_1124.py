@@ -18,7 +18,8 @@ def get_db_connection():
         user = 'postgres',
         password = 'P@ssw0rd!',
         database = 'postgres',  # the name of the batabase we are connecting
-        port = "5432)
+        port = "5432"
+        )
     return conn
 
 # Explain:
