@@ -1,12 +1,15 @@
-not_to_show/
+### backend ###
+.idea/
+.vscode/
+
+# dataset
 kaggle/
-data_org.csv
-dataprep_v1.csv
-testset_kaggle.csv
-testset_kaggle_prep.csv
-final.csv
+not_to_show/
 
-Dockerfile
-docker-compose.yml
-
+# preprocessing
 db_download.ipynb
+Prepro.ipynb
+
+### frontend ###
+
+### overall ###
