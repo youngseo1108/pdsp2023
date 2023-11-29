@@ -25,7 +25,7 @@ customIcon <- function(iconUrl, iconSize) {
 }
 
 # Read the world_country.csv file
-world_data <- read.csv("C:/GitHub/pdsp2023/frontend/world_country.csv")
+world_data <- read.csv(world_country.csv)
 
 # Extract unique country codes from the data
 country_codes <- sort(unique(world_data$country_code))
@@ -141,7 +141,7 @@ server <- function(input, output, session) {
   origin_coords <- reactiveValues(longitude = NULL, latitude = NULL)
   dest_coords <- reactiveValues(longitude = NULL, latitude = NULL)
   chart <- reactiveValues(org_count = NULL, des_count = NULL)
-  ip_address <- "http://127.0.0.1:8001"
+  ip_address <- "http://35.228.69.61:5000"
 
   # Fetch dynamic choices from the backend
   observe({  # departure day
