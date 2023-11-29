@@ -21,6 +21,9 @@ def get_db_connection():
 # Explain:
 # Flask routes: respond to AJAX requests from the frontend.
 # # Each route will query the PostgreSQL database and return the necessary data in JSON format.
+@app.route('/')
+def hello_world():
+    return 'Hello your IPv4 is: {}'.format(request.remote_addr)
 
 # 1: Itinerary Input Component
 # Route to get unique departure days
