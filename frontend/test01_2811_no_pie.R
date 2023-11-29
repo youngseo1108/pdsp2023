@@ -141,7 +141,7 @@ server <- function(input, output, session) {
   origin_coords <- reactiveValues(longitude = NULL, latitude = NULL)
   dest_coords <- reactiveValues(longitude = NULL, latitude = NULL)
   chart <- reactiveValues(org_count = NULL, des_count = NULL)
-  ip_address <- "http://35.228.69.61:5000"
+  ip_address <- "http://127.0.0.1:5000"
 
   # Fetch dynamic choices from the backend
   observe({  # departure day
@@ -220,9 +220,11 @@ server <- function(input, output, session) {
       data_recommendation <- httr::content(data_recommendation, "text")
       data_recommendation <- jsonlite::fromJSON(data_recommendation)
       dummy_data <- data.frame(
-        Deptime = data_recommendation$Dephours,
-        Arrtime = data_recommendation$Arrhours,
-        Elptime = data_recommendation$Elptime,
+        Departure.hour = data_recommendation$Dephours,
+        Arrival.hour = data_recommendation$Arrhours,
+        Elapsed.time = data_recommendation$Elptime,
+        Connection.time = data_recommendation$Connection_time,
+        Market.Share = data_recommendation$Market_share,
         Option = data_recommendation$Option
       )
       output$recommendations <- renderDataTable({ dummy_data })
