@@ -104,12 +104,6 @@ ui <- dashboardPage(
         ),
         fluidRow(
           box(
-            title = "Other Information", width = 12, solidHeader = TRUE,
-            background = "light-blue"
-          ),
-        ),
-        fluidRow(
-          box(
             title = "Detour",
             status = "primary",
             solidHeader = TRUE,
