@@ -2,6 +2,7 @@ from flask import Flask, render_template
 from flask import jsonify
 from flask import request
 import psycopg2
+from flask_cors import cross_origin
 #from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)     #create a flask instance
@@ -304,4 +305,4 @@ def get_other():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
