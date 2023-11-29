@@ -1,8 +1,15 @@
-data_org.csv
-dataprep_v1.csv
-testset_kaggle.csv
-testset_kaggle_prep.csv
-kaggle_pred_multirf_submission.csv
-kaggle_pred.csv
-kaggle_pred_v2.csv
-kaggle_pred_multirf.csv
+### backend ###
+.idea/
+.vscode/
+
+# dataset
+kaggle/
+not_to_show/
+
+# preprocessing
+db_download.ipynb
+Prepro.ipynb
+
+### frontend ###
+
+### overall ###
