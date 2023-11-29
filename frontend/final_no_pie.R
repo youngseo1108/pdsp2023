@@ -25,7 +25,7 @@ customIcon <- function(iconUrl, iconSize) {
 }
 
 # Read the world_country.csv file
-world_data <- read.csv(world_country.csv)
+world_data <- read.csv("world_country.csv")
 
 # Extract unique country codes from the data
 country_codes <- sort(unique(world_data$country_code))
@@ -104,12 +104,6 @@ ui <- dashboardPage(
         ),
         fluidRow(
           box(
-            title = "Other Information", width = 12, solidHeader = TRUE,
-            background = "light-blue"
-          ),
-        ),
-        fluidRow(
-          box(
             title = "Detour",
             status = "primary",
             solidHeader = TRUE,
@@ -141,7 +135,7 @@ server <- function(input, output, session) {
   origin_coords <- reactiveValues(longitude = NULL, latitude = NULL)
   dest_coords <- reactiveValues(longitude = NULL, latitude = NULL)
   chart <- reactiveValues(org_count = NULL, des_count = NULL)
-  ip_address <- "http://127.0.0.1:5000"
+  ip_address <- "http://34.88.91.47:5000" # "http://External_backend_server_IP:5000"
 
   # Fetch dynamic choices from the backend
   observe({  # departure day
@@ -215,7 +209,7 @@ server <- function(input, output, session) {
 
       # Recommendation table
       backend_url_recommendation <- paste(ip_address, "/get_recommendation?Orig_s=", chart$org_count, "&Dest_s=", chart$des_count, sep = "")
-      print(backend_url_recommendation)
+      # print(backend_url_recommendation)
       data_recommendation <- req(httr::GET(url = backend_url_recommendation))
       data_recommendation <- httr::content(data_recommendation, "text")
       data_recommendation <- jsonlite::fromJSON(data_recommendation)
