@@ -210,8 +210,8 @@ server <- function(input, output, session) {
 
       chart$org_count <- input$origin_country
       chart$des_count <- input$dest_country
-      print(chart$org_count)
-      print(chart$des_count)
+      # print(chart$org_count)
+      # print(chart$des_count)
 
       # Recommendation table
       backend_url_recommendation <- paste(ip_address, "/get_recommendation?Orig_s=", chart$org_count, "&Dest_s=", chart$des_count, sep = "")
