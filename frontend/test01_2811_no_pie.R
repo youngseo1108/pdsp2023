@@ -25,7 +25,7 @@ customIcon <- function(iconUrl, iconSize) {
 }
 
 # Read the world_country.csv file
-world_data <- read.csv(world_country.csv)
+world_data <- read.csv("world_country.csv")
 
 # Extract unique country codes from the data
 country_codes <- sort(unique(world_data$country_code))
