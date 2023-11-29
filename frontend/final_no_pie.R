@@ -141,7 +141,7 @@ server <- function(input, output, session) {
   origin_coords <- reactiveValues(longitude = NULL, latitude = NULL)
   dest_coords <- reactiveValues(longitude = NULL, latitude = NULL)
   chart <- reactiveValues(org_count = NULL, des_count = NULL)
-  ip_address <- "http://127.0.0.1:5000"
+  ip_address <- "http://35.228.69.61:5000" # "http://External_backend_server_IP:5000"
 
   # Fetch dynamic choices from the backend
   observe({  # departure day
