@@ -215,7 +215,7 @@ server <- function(input, output, session) {
 
       # Recommendation table
       backend_url_recommendation <- paste(ip_address, "/get_recommendation?Orig_s=", chart$org_count, "&Dest_s=", chart$des_count, sep = "")
-      print(backend_url_recommendation)
+      # print(backend_url_recommendation)
       data_recommendation <- req(httr::GET(url = backend_url_recommendation))
       data_recommendation <- httr::content(data_recommendation, "text")
       data_recommendation <- jsonlite::fromJSON(data_recommendation)
