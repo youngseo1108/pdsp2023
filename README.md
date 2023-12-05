@@ -30,33 +30,33 @@ Publisher: Backend - Youngseo Kim, Tianjiao Liu / Frontend - Insun Lee, Guoping 
 
 
 ### Explanation of files
-* backend
-1. dataset
+1. backend
+* dataset
   * airport-codes_csv.csv: a CSV file of labelling country codes to numbers
-  * dataprep_v2.csv: preprocessed data
-  * final_v2.csv: preprocessed data with indexes
+  * (deleted) dataprep_v2.csv: preprocessed data
+  * (deleted) final_v2.csv: preprocessed data with indexes
 
-2. data_engineering
+* data_engineering
   * backend_1129.py: connect the database server to the backend
   * PostgreSql_accuracy.ipynb: a script calculating the accuracy of the model
 
-3. ML
+* ML
   * multi_rf.ipynb: multioutput regressor + random forest model predicting TOT_pax, paxe, market_share and attaching indexes after the prediction
   * rf.ipynb: random forest model predicting market_share
 
-4. preprocessing
+* preprocessing
   * Prepro_kaggle.ipynb: a script preprocessing the Kaggle dataset for the Kaggle competition
   * Prepro_v2.ipynb: a script preprocessing the original dataset
 
-5. requirements.txt: the list of necessary packages to run backend/data_engineering/backend_1129.py
+* requirements.txt: the list of necessary packages to run backend/data_engineering/backend_1129.py
 
-* frontend
-  * airplane.png: an image of an aeroplane for the map
-  * final_no_pie.R: a frontend script for the map, the recommendation table, accuracy & market_share of a model and other information
+2. frontend
+  * airplane.png: an image of an aeroplane for the map in the UI
+  * final_no_pie.R: a frontend script for the UI, including the map, the recommendation table, accuracy & a predicted market_share/TOT_pax and other information
   * world_country.csv: a file containing geographical information of countries to show routes on the map
 
-* .gitignore
-* README.md
+3. .gitignore
+4. README.md
 
 
 ### Required packages
