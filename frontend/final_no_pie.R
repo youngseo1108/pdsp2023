@@ -12,6 +12,7 @@ library(shiny)
 library(shinyjs)
 library(dplyr)
 library(shinydashboard)
+library(leaflet)
 library(plotly)
 library(httr)
 
