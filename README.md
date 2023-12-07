@@ -79,15 +79,27 @@ import psycopg2
 import sqlite3
 from io import StringIO
 import numpy as np
-from flask import Flask, jsonify, request
+from flask import Flask, render_template, jsonify, request
+from flask_cors import cross_origin
+from sklearn.model_selection import RandomizedSearchCV
+from pprint import pprint
 ```
 
 2. Frontend
 ```R
+install.packages("shiny")
+install.packages("shinyjs")
+install.packages("dplyr")
+install.packages("shinydashboard")
+install.packages("leaflet")
+install.packages("plotly")
+install.packages("httr")
+
 library(shiny)
 library(shinyjs)
 library(dplyr)
 library(shinydashboard)
+library(leaflet)
 library(plotly)
 library(httr)
 ```
