@@ -79,10 +79,7 @@ import psycopg2
 import sqlite3
 from io import StringIO
 import numpy as np
-from flask import Flask, render_template, jsonify, request
-from flask_cors import cross_origin
-from sklearn.model_selection import RandomizedSearchCV
-from pprint import pprint
+from flask import Flask, jsonify, request
 ```
 
 2. Frontend
